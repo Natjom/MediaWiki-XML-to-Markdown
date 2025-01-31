@@ -6,6 +6,7 @@ from bs4 import BeautifulSoup
 import customtkinter as ctk
 import json
 import requests
+import string
 
 app_version = "B-V0.4"
 
@@ -69,7 +70,7 @@ def rename_files(directory, forceDelete=False):
             with open(file_path, "r", encoding="utf-8") as file:
                 content = file.read()
             
-            new_content = content.replace("Utilisateur:", "Utilisateur-")
+            new_content = content.replace("Utilisateur:", "")
             new_content = new_content.replace("[[Fichier:", "").replace("[[File:", "")
             
             if forceDelete:
@@ -96,8 +97,18 @@ def convert():
     
     for page in pages:
         soup2 = BeautifulSoup(str(page), "xml")
+        
+        
         title = soup2.find("title").string.split(":")[-1]
+        
+        invalid_chars = '<>:"/\\|?*'
+        for char in invalid_chars:
+            title = title.replace(char, "_")
+
+
         text = soup2.find("text").string or ""
+
+        text = re.sub(r"\{\{Nom Personnage\|page=(.*?)\}\}", r"[[\1]]", text)
         
         if title != "Accueil":
             # Suppression des catégories au format #xxxxxx (codes hex)
